@@ -6,9 +6,15 @@ from dotenv import load_dotenv
 
 intents = discord.Intents.default()
 
+cogs = [
+  "cogs.general",
+  "cogs.util"
+  ]
+
 class Client(commands.Bot):
   async def setup_hook(self):
-    await bot.load_extension("cogs.general")
+    for cog in cogs:
+      await bot.load_extension(cog)
     await bot.tree.sync()
 
 bot = Client(command_prefix = "!", intents = intents)

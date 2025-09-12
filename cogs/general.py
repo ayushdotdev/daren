@@ -34,7 +34,7 @@ class General(commands.Cog):
         e.set_footer(text=f"Page {i+1}/{len(pages)}")
         return e
 
-    view = discord.ui.View(timeout=180)
+    view = discord.ui.View()
 
     if len(pages) > 1:
         async def prev_btn_callback(interaction: discord.Interaction):

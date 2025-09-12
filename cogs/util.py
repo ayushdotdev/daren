@@ -6,7 +6,7 @@ class Utility(commands.Cog):
   def __init__(self,bot):
     self.bot = bot
     
-  avatar = app_commands.Group(name="avatar", description="Avatar related commands")
+  avatar = app_commands.Group(name="avatar", description="Displays avatar of someone")
 
   @avatar.command(name="get", description="Get a user's avatar (guild if set, else global)")
   async def avatar_cmd(self, interaction: discord.Interaction, member: discord.Member = None):

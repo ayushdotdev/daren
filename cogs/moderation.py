@@ -318,6 +318,15 @@ class Moderation(commands.Cog):
         )
         await interaction.response.send_message(embed=success)
     
+    # WARNINGS COMMAND STARTS HERE
+    @app_commands.command(name="warnings", description="Get warnings for a user.")
+    @app_commands.checks.has_permissions(manage_messages=True)
+    async def _warnings(self, interaction: discord.Interaction, member: discord.Member):
+      warn_lst = db.get_warns(member.id, interaction.guild.id)
+      page = discord.Embed(color = 0xff775e, description = f"Hey {warn_lst}")
+      page.set_author(name = f"Warnings for {member.name}", icon_url = member.display_avatar.url)
+      await interaction.response.send_message(embed = page)
+    
     
 async def setup(bot: commands.Bot):
     await bot.add_cog(Moderation(bot))

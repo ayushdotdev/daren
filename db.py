@@ -12,6 +12,19 @@ def add_warning(user_id: int, guild_id: int, moderator_id: int, reason: str):
         conn.commit()
         
   
+def get_warns(user_id, guild_id):
+    warns = []
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT * FROM warnings
+        WHERE user_id = ? AND guild_id = ?
+        """,(user_id,guild_id))
+        rows = cursor.fetchall()
+        for row in rows:
+            warns.append(row)
+    return warns
+  
 # def check():
 #     with sqlite3.connect(DB_PATH) as conn:
 #         cursor = conn.cursor()

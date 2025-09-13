@@ -323,8 +323,28 @@ class Moderation(commands.Cog):
     @app_commands.checks.has_permissions(manage_messages=True)
     async def _warnings(self, interaction: discord.Interaction, member: discord.Member):
       warn_lst = db.get_warns(member.id, interaction.guild.id)
-      page = discord.Embed(color = 0xff775e, description = f"Hey {warn_lst}")
-      page.set_author(name = f"Warnings for {member.name}", icon_url = member.display_avatar.url)
+      warn_no = len(warn_lst)
+      
+      if warn_no == 0 or member.bot:
+        await interaction.response.send_message(embed = discord.Embed(
+          color = 0x4b00ff,
+          description = "<:darenInfo:1416501174974288004> **_There are no warnings for this user._**"
+          ), ephemeral = True)
+        return
+      
+      page = discord.Embed(color = 0xff775e)
+      page.set_author(name = f" {warn_no} Warning(s) for {member.name}", icon_url = member.display_avatar.url)
+      
+      for i in warn_lst:
+        mod = await interaction.guild.fetch_member(i[2])
+        mod_name = mod.name
+        reason = i[3]
+        ts = i[4]
+        date, time = ts.split(" ")
+        hour, minute,_ = time.split(":")
+        formatted = f"{date} at {hour}:{minute}"
+        page.add_field(name = f"Moderator: {mod_name}", value = f"{reason} ```{formatted}```")
+        
       await interaction.response.send_message(embed = page)
     
     

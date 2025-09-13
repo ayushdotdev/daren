@@ -92,8 +92,6 @@ class Moderation(commands.Cog):
           )
           await interaction.response.send_message(embed=error, ephemeral=True)
           return
-            await interaction.response.send_message(embed=error, ephemeral=True)
-            return
     
         if member.top_role.position >= interaction.user.top_role.position and interaction.guild.owner_id != interaction.user.id:
             error = discord.Embed(
@@ -130,5 +128,50 @@ class Moderation(commands.Cog):
         )
         await interaction.response.send_message(embed=success)
     
+    
+    @app_commands.command(name="unban", description="Unban a user")
+    @app_commands.checks.has_permissions(ban_members=True)
+    async def _unban(self, interaction: discord.Interaction, user_id: str, *, reason: str = "No reason provided"):
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            await interaction.response.send_message(
+                embed=discord.Embed(
+                    color=0xed2939,
+                    description="<:darenError:1415768665642766407> **_Invalid user ID._**"
+                ),
+                ephemeral=True
+            )
+            return
+    
+        try:
+            user = await interaction.client.fetch_user(user_id)
+            await interaction.guild.unban(user, reason=reason)
+    
+            success = discord.Embed(
+                color=0x48a860,
+                description=f"<:darenSuccess:1415789425652269096> **{user} was unbanned**"
+            )
+            await interaction.response.send_message(embed=success)
+    
+            try:
+                await user.send(
+                    embed=discord.Embed(
+                        title=f"Unbanned from {interaction.guild.name}",
+                        description=f"You have been **unbanned** from **{interaction.guild.name}**\n\n**Reason:**\n{reason}",
+                        color=0x48a860
+                    )
+                )
+            except discord.Forbidden:
+                pass
+    
+        except discord.NotFound:
+            error = discord.Embed(
+                color=0xed2939,
+                description="<:darenError:1415768665642766407> **_This user is not banned._**"
+            )
+            await interaction.response.send_message(embed=error, ephemeral=True)
+        
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(Moderation(bot))

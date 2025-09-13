@@ -38,5 +38,25 @@ class Utility(commands.Cog):
     else:
       error_embed = discord.Embed(color=0xed2939, description=f"<:darenError:1415768665642766407> **_User does not have a server avatar._**")
       await interaction.response.send_message(embed=error_embed, ephemeral=True)
+      
+  @app_commands.command(name = "serverinfo", description = "Get information/stats for this server")
+  async def _serverinfo(self, interaction: discord.Interaction):
+    guild = interaction.guild
+    info = discord.Embed(
+      color = 0x4b00ff
+      )
+    info.set_author(name = guild.name,icon_url = guild.icon.url)
+    info.set_thumbnail(url = guild.icon.url)
+    owner = await guild.fetch_member(guild.owner_id)
+    info.add_field(name = "Owner", value = str(owner))
+    info.add_field(name = "Members", value = guild.member_count)
+    info.add_field(name = "Roles", value = len(guild.roles))
+    info.add_field(name = "Text Channels", value = len(guild.text_channels))
+    info.add_field(name = "Voice Channels", value = len(guild.voice_channels))
+    info.add_field(name = "Created At", value = guild.created_at)
+    info.set_footer(text = f"ID: {guild.id}")
+    await interaction.response.send_message(embed = info)
+    
+
 async def setup(bot: commands.Bot):
   await bot.add_cog(Utility(bot))

@@ -1,11 +1,14 @@
 from discord import app_commands
 from discord.ext import commands
 import discord
+import db
 
 class Moderation(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+
+    # KICK COMMAND STARTS HERE
     @app_commands.command(name="kick", description="Kick a member")
     @app_commands.checks.has_permissions(kick_members=True)
     async def _kick(self, interaction: discord.Interaction, member: discord.Member, *, reason: str = "No reason provided"):
@@ -67,7 +70,9 @@ class Moderation(commands.Cog):
             description=f"<:darenSuccess:1415789425652269096> **{member.name} was kicked**"
         )
         await interaction.response.send_message(embed=success)
-        
+       
+       
+    # BAN COMMAND STARTS HERE 
     @app_commands.command(name="ban", description="Ban a member")
     @app_commands.checks.has_permissions(ban_members=True)
     async def _ban(self, interaction: discord.Interaction, member: discord.Member, *, reason: str = "No reason provided"):
@@ -129,6 +134,7 @@ class Moderation(commands.Cog):
         await interaction.response.send_message(embed=success)
     
     
+    # UNBAN COMMAND STARTS HERE
     @app_commands.command(name="unban", description="Unban a user")
     @app_commands.checks.has_permissions(ban_members=True)
     async def _unban(self, interaction: discord.Interaction, user_id: str, *, reason: str = "No reason provided"):
@@ -172,6 +178,8 @@ class Moderation(commands.Cog):
             )
             await interaction.response.send_message(embed=error, ephemeral=True)
             
+            
+    # SOFTBAN COMMAND STARTS HERE
     @app_commands.command(name="softban", description="Softban a member. (ban and then immediate unban to delete their messages")
     @app_commands.checks.has_permissions(ban_members=True)
     async def _softban(self, interaction: discord.Interaction, member: discord.Member, *, reason: str = "No reason provided"):
@@ -233,6 +241,8 @@ class Moderation(commands.Cog):
         )
         await interaction.response.send_message(embed=success)
         
+        
+    # PURGE COMMAND STARTS HERE (I fking hate bots)
     purge = app_commands.Group(name = "purge", description = "Delete a number of messages from a channel. (limit 1000)")
     
     @purge.command(name = "any", description = "Deletes any message type")
@@ -245,6 +255,69 @@ class Moderation(commands.Cog):
         description=f"<:darenSuccess:1415789425652269096> **_Deleted {len(deleted)} messages._**"
         ), ephemeral = True)
       
-
+    # WARN COMMAND STARTS HERE
+    @app_commands.command(name="warn", description="Warn a member")
+    @app_commands.checks.has_permissions(manage_messages=True)
+    async def _warn(self, interaction: discord.Interaction, member: discord.Member, *, reason: str = "No reason provided"):
+        if member.id in [interaction.client.user.id, interaction.user.id, interaction.guild.owner_id]:
+            error = discord.Embed(
+                color=0xed2939,
+                description="<:darenError:1415768665642766407> **_I cannot warn this user._**"
+            )
+            await interaction.response.send_message(embed=error, ephemeral=True)
+            return
+          
+        if member.bot:
+          error = discord.Embed(
+            color=0xed2939,
+            description="<:darenError:1415768665642766407> **_I cannot warn bots._**"
+          )
+          await interaction.response.send_message(embed=error, ephemeral=True)
+          return
+    
+        if member.top_role.position >= interaction.guild.me.top_role.position:
+            error = discord.Embed(
+                color=0xed2939,
+                description="<:darenError:1415768665642766407> **_My role isn't high enough to moderate this user. Move my role up above others._**"
+            )
+            await interaction.response.send_message(embed=error, ephemeral=True)
+            return
+    
+        if member.top_role.position >= interaction.user.top_role.position and interaction.guild.owner_id != interaction.user.id:
+            error = discord.Embed(
+                color=0xed2939,
+                description="<:darenError:1415768665642766407> **_You cannot warn this user._**"
+            )
+            await interaction.response.send_message(embed=error, ephemeral=True)
+            return
+    
+        if not interaction.guild.me.guild_permissions.manage_messages:
+            error = discord.Embed(
+                color=0xed2939,
+                description="<:darenError:1415768665642766407> **_I don’t have permission to warn members._**"
+            )
+            await interaction.response.send_message(embed=error, ephemeral=True)
+            return
+    
+        try:
+            await member.send(
+                embed=discord.Embed(
+                    title=f"Warned in {interaction.guild.name}",
+                    description=f"You have been **warned** in **{interaction.guild.name}**\n\n**Reason:**\n{reason}",
+                    color=0xdaa520
+                )
+            )
+        except discord.Forbidden:
+            pass
+    
+        db.add_warning(member.id,interaction.guild.id,interaction.user.id,reason)
+    
+        success = discord.Embed(
+            color=0x48a860,
+            description=f"<:darenSuccess:1415789425652269096> **{member.name} has been warned**"
+        )
+        await interaction.response.send_message(embed=success)
+    
+    
 async def setup(bot: commands.Bot):
     await bot.add_cog(Moderation(bot))

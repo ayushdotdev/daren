@@ -229,10 +229,22 @@ class Moderation(commands.Cog):
     
         success = discord.Embed(
             color=0x48a860,
-            description=f"<:darenSuccess:1415789425652269096> **{member.name} was softbanned**"
+            description=f"<:darenSuccess:1415789425652269096> **_{member.name} was softbanned._**"
         )
         await interaction.response.send_message(embed=success)
         
+    purge = app_commands.Group(name = "purge", description = "Delete a number of messages from a channel. (limit 1000)")
+    
+    @purge.command(name = "any", description = "Deletes any message type")
+    @app_commands.checks.has_permissions(manage_messages = True)
+    async def purge_cmd(self, interaction: discord.Interaction, amount: app_commands.Range[int, 1,1000]):
+      await interaction.response.defer(ephemeral = True)
+      deleted = await interaction.channel.purge(limit = amount)
+      await interaction.followup.send(embed = discord.Embed(
+        color=0x48a860,
+        description=f"<:darenSuccess:1415789425652269096> **_Deleted {len(deleted)} messages._**"
+        ), ephemeral = True)
+      
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Moderation(bot))
